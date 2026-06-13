@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = process.env.API_URL || 'https://website-qltc.onrender.com/api';
 
 async function runTests() {
   console.log('=== KHỞI ĐẦU CHƯƠNG TRÌNH KIỂM THỬ TỰ ĐỘNG API (NATIVE FETCH) ===');

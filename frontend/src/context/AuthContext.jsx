@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-export const API_URL = 'http://localhost:5000/api';
+export const API_URL = import.meta.env.VITE_API_URL || 'https://website-qltc.onrender.com/api';
 
 // Tạo Instance Axios cấu hình sẵn Authorization header
 export const api = axios.create({
