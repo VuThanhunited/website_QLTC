@@ -76,7 +76,7 @@ export default function Sidebar() {
           <img src={logoImg} alt="HUST Logo" className="w-full h-full object-cover" />
         </div>
         <div>
-          <h1 className="font-bold text-md leading-tight text-slate-800 tracking-wide">UniAsset Admin</h1>
+          <h1 className="font-bold text-md leading-tight text-slate-800 tracking-wide">HustAsset Admin</h1>
           <p className="text-[10px] font-semibold text-primary-600 uppercase tracking-wide">HUST DAM Admin</p>
         </div>
       </div>

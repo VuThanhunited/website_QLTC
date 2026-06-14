@@ -58,7 +58,7 @@ export default function Login() {
           <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white shadow-md border border-slate-200/60 flex items-center justify-center mb-4">
             <img src={logoImg} alt="HUST Logo" className="w-full h-full object-cover" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-800 tracking-wide">UniAsset Admin</h2>
+          <h2 className="text-2xl font-bold text-slate-800 tracking-wide">HustAsset Admin</h2>
           <p className="text-slate-500 text-sm mt-1">Cổng đăng nhập dành riêng cho Cán bộ & Admin</p>
         </div>
 
