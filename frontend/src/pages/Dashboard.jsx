@@ -51,13 +51,11 @@ export default function Dashboard() {
   };
 
   const fetchAuditLogs = async () => {
-    if (user?.role === 'Admin') {
-      try {
-        const res = await api.get('/audit-logs');
-        setAuditLogs(res.data);
-      } catch (err) {
-        console.error('Lỗi khi fetch audit logs:', err);
-      }
+    try {
+      const res = await api.get('/audit-logs');
+      setAuditLogs(res.data);
+    } catch (err) {
+      console.error('Lỗi khi fetch audit logs:', err);
     }
   };
 
@@ -270,18 +268,16 @@ export default function Dashboard() {
                 </button>
               )}
 
-              {user?.role === 'Admin' && (
-                <button
-                  onClick={() => setActiveTab('audit-logs')}
-                  className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
-                    activeTab === 'audit-logs'
-                      ? 'bg-primary-50 text-primary-600 border border-primary-100 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  Nhật ký kiểm toán ({auditLogs.length})
-                </button>
-              )}
+              <button
+                onClick={() => setActiveTab('audit-logs')}
+                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
+                  activeTab === 'audit-logs'
+                    ? 'bg-primary-50 text-primary-600 border border-primary-100 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {user?.role === 'Admin' ? `Nhật ký kiểm toán (${auditLogs.length})` : `Lịch sử cá nhân (${auditLogs.length})`}
+              </button>
             </div>
 
             {activeTab === 'assets' && (
@@ -443,30 +439,34 @@ export default function Dashboard() {
             </div>
           )}
 
-          {activeTab === 'audit-logs' && user?.role === 'Admin' && (
+          {activeTab === 'audit-logs' && (
             <div className="glass-card rounded-2xl overflow-hidden border border-slate-200/60 bg-white shadow-sm">
               <div className="p-4 bg-slate-50/50 border-b border-slate-200/60 flex items-center gap-2">
                 <Clock size={16} className="text-primary-600" />
-                <h4 className="font-semibold text-sm text-slate-800">Hoạt động thời gian thực (Audit Logs)</h4>
+                <h4 className="font-semibold text-sm text-slate-800">
+                  {user?.role === 'Admin' ? 'Hoạt động thời gian thực (Audit Logs)' : 'Lịch sử hoạt động cá nhân'}
+                </h4>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-slate-200/60 text-xs text-slate-400 uppercase bg-slate-50/50">
                       <th className="p-4 font-semibold">Thời gian</th>
-                      <th className="p-4 font-semibold">Tác nhân</th>
+                      {user?.role === 'Admin' && <th className="p-4 font-semibold">Tác nhân</th>}
                       <th className="p-4 font-semibold">Hành động</th>
                       <th className="p-4 font-semibold">Chi tiết hành vi</th>
                     </tr>
                   </thead>
                   <tbody className="text-xs text-slate-700 divide-y divide-slate-100">
                     {auditLogs.map((log) => (
-                      <tr key={log._id} className="hover:bg-slate-50/50 transition-all">
+                      <tr key={log._id} className="hover:bg-slate-50/30 transition-all">
                         <td className="p-4 text-slate-400">{new Date(log.timestamp).toLocaleString()}</td>
-                        <td className="p-4">
-                          <span className="font-medium text-slate-800">{log.username}</span>
-                          <span className="ml-2 text-[9px] bg-slate-100 border border-slate-200 px-1 py-0.5 rounded text-slate-500 font-semibold">{log.role}</span>
-                        </td>
+                        {user?.role === 'Admin' && (
+                          <td className="p-4">
+                            <span className="font-medium text-slate-800">{log.username}</span>
+                            <span className="ml-2 text-[9px] bg-slate-100 border border-slate-200 px-1 py-0.5 rounded text-slate-500 font-semibold">{log.role}</span>
+                          </td>
+                        )}
                         <td className="p-4">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                             log.action.includes('DELETE') ? 'bg-rose-50 text-rose-600 border border-rose-200' :
