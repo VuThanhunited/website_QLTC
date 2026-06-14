@@ -5,6 +5,7 @@ Dự án quản lý tài sản số dành cho trường đại học, bao gồm 
 ## 🔗 Liên kết triển khai (Deployment Links)
 
 * **Cổng Frontend (Người dùng/Sinh viên/Giảng viên)**: [https://website-qltc.vercel.app](https://website-qltc.vercel.app)
+* **Cổng Admin (Quản trị viên)**: [https://website-admin-qltc.vercel.app](https://website-admin-qltc.vercel.app)
 * **Cổng Backend API**: [https://website-qltc.onrender.com](https://website-qltc.onrender.com)
 * **Kho lưu trữ GitHub**: [https://github.com/VuThanhunited/website_QLTC](https://github.com/VuThanhunited/website_QLTC)
 
