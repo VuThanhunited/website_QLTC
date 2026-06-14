@@ -9,11 +9,11 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
+          50: '#fff1f2',
+          100: '#ffe4e6',
+          500: '#C8102E',
+          600: '#B00E2A',
+          700: '#900B22',
         },
       },
       fontFamily: {

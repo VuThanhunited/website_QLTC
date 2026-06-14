@@ -12,7 +12,8 @@ import {
   Calendar,
   Send,
   Plus,
-  RefreshCw
+  RefreshCw,
+  Search
 } from 'lucide-react';
 
 export default function RequestManagement() {
@@ -21,7 +22,12 @@ export default function RequestManagement() {
   // Data states
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [processingIds, setProcessingIds] = useState({}); // Lưu trạng thái loading của từng dòng { [reqId]: true }
+  const [processingIds, setProcessingIds] = useState({}); // { [reqId]: true }
+  
+  // Filtering states
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // States for student request creation helper (within this page)
   const [assets, setAssets] = useState([]);
@@ -45,6 +51,18 @@ export default function RequestManagement() {
     }
   };
 
+  const filteredRequests = requests.filter(req => {
+    const matchStatus = statusFilter === 'All' || req.status === statusFilter;
+    const matchType = typeFilter === 'All' || req.type === typeFilter;
+    const assetName = req.assetId?.name || '';
+    const assetId = req.assetId?.astId || '';
+    const studentName = req.userId?.username || '';
+    const matchSearch = assetName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        assetId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        studentName.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchStatus && matchType && matchSearch;
+  });
+
   const fetchAssetsForSelection = async () => {
     if (user?.role === 'Student') {
       try {
@@ -66,7 +84,6 @@ export default function RequestManagement() {
 
   // Handle Approve/Reject (Lecturer/Admin Only - UC-05)
   const handleAction = async (id, action) => {
-    // Set row-level loading spinner
     setProcessingIds(prev => ({ ...prev, [id]: true }));
     try {
       await api.post(`/requests/${id}/action`, { action });
@@ -144,42 +161,42 @@ export default function RequestManagement() {
   // Helpers
   const getCategoryIcon = (category) => {
     switch (category) {
-      case 'Software License': return <Cpu className="text-sky-400" size={14} />;
-      case 'Digital Course': return <BookOpen className="text-emerald-400" size={14} />;
-      default: return <FileText className="text-violet-400" size={14} />;
+      case 'Software License': return <Cpu className="text-sky-500" size={14} />;
+      case 'Digital Course': return <BookOpen className="text-emerald-500" size={14} />;
+      default: return <FileText className="text-violet-500" size={14} />;
     }
   };
 
   const getStatusBadge = (status) => {
     switch (status) {
       case 'approved': 
-        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Đã duyệt (Approved)</span>;
+        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-50 text-emerald-600 border border-emerald-200">Đã duyệt (Approved)</span>;
       case 'rejected': 
-        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">Từ chối (Rejected)</span>;
+        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-rose-50 text-rose-600 border border-rose-200">Từ chối (Rejected)</span>;
       default: 
-        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Chờ duyệt (Pending)</span>;
+        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-50 text-amber-600 border border-amber-200">Chờ duyệt (Pending)</span>;
     }
   };
 
   const getTypeBadge = (type) => {
     switch (type) {
       case 'borrow': 
-        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-primary-500/10 text-primary-400 border border-primary-500/20 uppercase">MƯỢN</span>;
+        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-primary-50 text-primary-600 border border-primary-200 uppercase">MƯỢN</span>;
       case 'return': 
-        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase">TRẢ</span>;
+        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-violet-50 text-violet-600 border border-violet-200 uppercase">TRẢ</span>;
       default: 
-        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase">GIA HẠN</span>;
+        return <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-50 text-amber-600 border border-amber-200 uppercase">GIA HẠN</span>;
     }
   };
 
   return (
     <div className="min-h-screen pl-64 bg-transparent pb-10">
-      <header className="sticky top-0 bg-[#0b0f19]/80 backdrop-blur-md border-b border-white/5 py-6 px-8 flex justify-between items-center z-10">
+      <header className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200/80 py-6 px-8 flex justify-between items-center z-10">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-wide">
+          <h2 className="text-2xl font-bold text-slate-800 tracking-wide">
             {user?.role === 'Student' ? 'Đơn Yêu Cầu Của Tôi' : 'Phê Duyệt & Điều Phối Yêu Cầu'}
           </h2>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-slate-500">
             {user?.role === 'Student' 
               ? 'Theo dõi trạng thái phê duyệt đơn mượn, trả và xin gia hạn tài nguyên'
               : 'Trung tâm xử lý động học các yêu cầu khai thác tài sản số của sinh viên'}
@@ -190,7 +207,7 @@ export default function RequestManagement() {
           <button
             onClick={fetchRequests}
             title="Làm mới dữ liệu"
-            className="p-2.5 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl border border-white/5 transition-all"
+            className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl border border-slate-200/50 transition-all"
           >
             <RefreshCw size={16} />
           </button>
@@ -198,7 +215,7 @@ export default function RequestManagement() {
           {user?.role === 'Student' && (
             <button
               onClick={() => setNewRequestModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white font-semibold rounded-xl text-sm shadow-lg shadow-primary-500/15 transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl text-sm shadow-md shadow-primary-500/10 transition-all"
             >
               <Plus size={16} />
               Tạo yêu cầu mới
@@ -209,8 +226,50 @@ export default function RequestManagement() {
 
       <main className="p-8 max-w-7xl mx-auto space-y-6">
         
+        {/* Bộ lọc nâng cao */}
+        <section className="glass-card rounded-2xl p-4 border border-slate-200/60 flex flex-col md:flex-row gap-4 items-center justify-between bg-white shadow-sm">
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 hover:border-slate-300 focus-within:border-primary-500 rounded-xl px-4 py-2 text-xs text-slate-700 w-full md:max-w-xs transition-all">
+            <Search size={14} className="text-slate-400" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm tài sản, MSSV..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent border-none outline-none text-slate-800 w-full focus:outline-none placeholder-slate-400"
+            />
+          </div>
+
+          <div className="flex gap-4 w-full md:w-auto">
+            <div className="flex-1 md:flex-none">
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="w-full bg-white border border-slate-200 text-slate-700 text-xs rounded-xl px-4 py-2 focus:outline-none focus:border-primary-500 cursor-pointer"
+              >
+                <option value="All">Tất cả loại đơn</option>
+                <option value="borrow">Mượn (Borrow)</option>
+                <option value="return">Trả (Return)</option>
+                <option value="extend">Gia hạn (Extend)</option>
+              </select>
+            </div>
+
+            <div className="flex-1 md:flex-none">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full bg-white border border-slate-200 text-slate-700 text-xs rounded-xl px-4 py-2 focus:outline-none focus:border-primary-500 cursor-pointer"
+              >
+                <option value="All">Tất cả trạng thái</option>
+                <option value="pending">Chờ duyệt (Pending)</option>
+                <option value="approved">Đã duyệt (Approved)</option>
+                <option value="rejected">Từ chối (Rejected)</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
         {/* Bảng đơn từ */}
-        <section className="glass-card rounded-2xl overflow-hidden border border-white/5">
+        <section className="glass-card rounded-2xl overflow-hidden border border-slate-200/60 bg-white shadow-sm">
           {loading ? (
             <div className="py-20 flex justify-center items-center">
               <div className="w-8 h-8 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin"></div>
@@ -219,7 +278,7 @@ export default function RequestManagement() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5 text-xs text-gray-400 uppercase bg-white/[0.01]">
+                  <tr className="border-b border-slate-200/60 text-xs text-slate-400 uppercase bg-slate-50/50">
                     <th className="p-4 font-semibold">Tài sản yêu cầu</th>
                     <th className="p-4 font-semibold">Thể loại</th>
                     <th className="p-4 font-semibold">Người gửi</th>
@@ -230,15 +289,15 @@ export default function RequestManagement() {
                     <th className="p-4 font-semibold text-center">Tác vụ hành động</th>
                   </tr>
                 </thead>
-                <tbody className="text-xs text-gray-300 divide-y divide-white/5">
-                  {requests.length > 0 ? (
-                    requests.map((req) => {
+                <tbody className="text-xs text-slate-700 divide-y divide-slate-100">
+                  {filteredRequests.length > 0 ? (
+                    filteredRequests.map((req) => {
                       const isProcessing = processingIds[req._id];
                       return (
-                        <tr key={req._id} className="hover:bg-white/[0.01] transition-all">
+                        <tr key={req._id} className="hover:bg-slate-50/30 transition-all">
                           <td className="p-4">
-                            <span className="font-bold text-gray-200 block">{req.assetId?.name}</span>
-                            <span className="text-[10px] text-gray-500 font-mono mt-0.5 inline-block bg-white/5 px-1.5 py-0.2 rounded">
+                            <span className="font-bold text-slate-800 block">{req.assetId?.name}</span>
+                            <span className="text-[10px] text-slate-500 font-mono mt-0.5 inline-block bg-slate-100 border border-slate-200/50 px-1.5 py-0.2 rounded">
                               {req.assetId?.astId}
                             </span>
                           </td>
@@ -249,18 +308,18 @@ export default function RequestManagement() {
                             </span>
                           </td>
                           <td className="p-4">
-                            <span className="font-medium text-gray-200 block">{req.userId?.username}</span>
-                            <span className="text-[10px] text-gray-500">{req.userId?.email}</span>
+                            <span className="font-medium text-slate-800 block">{req.userId?.username}</span>
+                            <span className="text-[10px] text-slate-400">{req.userId?.email}</span>
                           </td>
                           <td className="p-4">{getTypeBadge(req.type)}</td>
-                          <td className="p-4 font-semibold text-gray-200">{req.durationDays || 'N/A'}</td>
-                          <td className="p-4 max-w-xs truncate text-gray-400" title={req.notes}>
-                            {req.notes || <span className="text-gray-600">Không ghi chú</span>}
+                          <td className="p-4 font-semibold text-slate-800">{req.durationDays || 'N/A'}</td>
+                          <td className="p-4 max-w-xs truncate text-slate-500" title={req.notes}>
+                            {req.notes || <span className="text-slate-400">Không ghi chú</span>}
                           </td>
                           <td className="p-4">{getStatusBadge(req.status)}</td>
                           
                           <td className="p-4 text-center">
-                            {/* Phê duyệt & Từ chối dành cho Lecturer/Admin (UC-05) */}
+                            {/* Phê duyệt & Từ chối dành cho Lecturer (Admin không duyệt đơn học sinh nữa) */}
                             {user?.role !== 'Student' ? (
                               req.status === 'pending' ? (
                                 <div className="inline-flex gap-2">
@@ -268,7 +327,7 @@ export default function RequestManagement() {
                                     onClick={() => handleAction(req._id, 'approved')}
                                     disabled={isProcessing}
                                     title="Duyệt yêu cầu"
-                                    className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/20 transition-all text-[11px] font-semibold flex items-center gap-1"
+                                    className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white border border-emerald-200 hover:border-emerald-600 transition-all text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
                                   >
                                     {isProcessing ? (
                                       <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -283,7 +342,7 @@ export default function RequestManagement() {
                                     onClick={() => handleAction(req._id, 'rejected')}
                                     disabled={isProcessing}
                                     title="Từ chối yêu cầu"
-                                    className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 transition-all text-[11px] font-semibold flex items-center gap-1"
+                                    className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-600 transition-all text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
                                   >
                                     {isProcessing ? (
                                       <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -296,8 +355,8 @@ export default function RequestManagement() {
                                   </button>
                                 </div>
                               ) : (
-                                <span className="text-[10px] text-gray-500">
-                                  Xử lý bởi: {req.actionBy ? 'Cán bộ' : 'Hệ thống'}
+                                <span className="text-[10px] text-slate-500">
+                                  Xử lý bởi: <span className="font-semibold text-slate-700">{req.actionBy?.username || 'Hệ thống'}</span>
                                 </span>
                               )
                             ) : (
@@ -307,20 +366,20 @@ export default function RequestManagement() {
                                   {/* Yêu cầu gia hạn (UC-04) */}
                                   <button
                                     onClick={() => handleQuickExtend(req.assetId?._id, `Gia hạn sử dụng thiết bị ${req.assetId?.name}`)}
-                                    className="px-2 py-1 rounded bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-white border border-amber-500/20 transition-all text-[10px] font-bold uppercase"
+                                    className="px-2 py-1 rounded bg-amber-50 hover:bg-amber-500 text-amber-600 hover:text-white border border-amber-200 hover:border-amber-600 transition-all text-[10px] font-bold uppercase cursor-pointer"
                                   >
                                     Gia hạn
                                   </button>
                                   {/* Trả tài sản */}
                                   <button
                                     onClick={() => handleQuickReturn(req.assetId?._id)}
-                                    className="px-2 py-1 rounded bg-violet-500/10 hover:bg-violet-500 text-violet-400 hover:text-white border border-violet-500/20 transition-all text-[10px] font-bold uppercase"
+                                    className="px-2 py-1 rounded bg-violet-50 hover:bg-violet-500 text-violet-600 hover:text-white border border-violet-200 hover:border-violet-600 transition-all text-[10px] font-bold uppercase cursor-pointer"
                                   >
                                     Yêu cầu trả
                                   </button>
                                 </div>
                               ) : (
-                                <span className="text-gray-500 text-[10px]">-</span>
+                                <span className="text-slate-400 text-[10px]">-</span>
                               )
                             )}
                           </td>
@@ -329,7 +388,7 @@ export default function RequestManagement() {
                     })
                   ) : (
                     <tr>
-                      <td colSpan="8" className="p-8 text-center text-gray-400">
+                      <td colSpan="8" className="p-8 text-center text-slate-400">
                         Không tìm thấy yêu cầu nào.
                       </td>
                     </tr>
@@ -343,26 +402,26 @@ export default function RequestManagement() {
 
       {/* Student Create Request Modal Helper */}
       {newRequestModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-card max-w-md w-full rounded-2xl border border-white/10 p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Plus size={18} className="text-primary-400" />
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="glass-card max-w-md w-full rounded-2xl border border-slate-200/80 p-6 shadow-2xl relative bg-white">
+            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <Plus size={18} className="text-primary-600" />
               Khởi Tạo Đơn Yêu Cầu Mới
             </h3>
-            <p className="text-xs text-gray-400 mt-1">Gửi phiếu mượn, trả hoặc gia hạn tài nguyên số</p>
+            <p className="text-xs text-slate-500 mt-1">Gửi phiếu mượn, trả hoặc gia hạn tài nguyên số</p>
 
             <form onSubmit={handleCreateRequest} className="mt-5 space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                   Chọn tài sản số *
                 </label>
                 <select
                   value={selectedAssetId}
                   onChange={(e) => setSelectedAssetId(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-white/5 border border-white/10 focus:border-primary-500 rounded-xl text-sm text-gray-300 focus:outline-none transition-all"
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 text-slate-700 text-sm focus:border-primary-500 rounded-xl focus:outline-none transition-all cursor-pointer"
                 >
                   {assets.map((asset) => (
-                    <option key={asset._id} value={asset._id} className="bg-[#0b0f19]">
+                    <option key={asset._id} value={asset._id}>
                       [{asset.astId}] {asset.name} ({asset.category})
                     </option>
                   ))}
@@ -371,22 +430,22 @@ export default function RequestManagement() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                     Loại yêu cầu *
                   </label>
                   <select
                     value={reqType}
                     onChange={(e) => setReqType(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-white/5 border border-white/10 focus:border-primary-500 rounded-xl text-sm text-gray-300 focus:outline-none transition-all"
+                    className="w-full px-3.5 py-2 bg-white border border-slate-200 text-slate-700 text-sm focus:border-primary-500 rounded-xl focus:outline-none transition-all cursor-pointer"
                   >
-                    <option value="borrow" className="bg-[#0b0f19]">Mượn tài nguyên</option>
-                    <option value="return" className="bg-[#0b0f19]">Trả tài nguyên</option>
-                    <option value="extend" className="bg-[#0b0f19]">Gia hạn thời hạn</option>
+                    <option value="borrow">Mượn tài nguyên</option>
+                    <option value="return">Trả tài nguyên</option>
+                    <option value="extend">Gia hạn thời hạn</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                     Thời gian đề xuất (ngày)
                   </label>
                   <input
@@ -396,13 +455,13 @@ export default function RequestManagement() {
                     disabled={reqType === 'return'}
                     value={duration}
                     onChange={(e) => setDuration(parseInt(e.target.value) || 30)}
-                    className="w-full px-3.5 py-2 bg-white/5 border border-white/10 focus:border-primary-500 rounded-xl text-sm text-white focus:outline-none disabled:opacity-50 transition-all"
+                    className="w-full px-3.5 py-2 bg-white border border-slate-200 focus:border-primary-500 rounded-xl text-sm text-slate-850 focus:outline-none disabled:opacity-50 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                   Lý do / Ghi chú chi tiết *
                 </label>
                 <textarea
@@ -411,12 +470,12 @@ export default function RequestManagement() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Điền lý do thực tế..."
-                  className="w-full px-3.5 py-2 bg-white/5 border border-white/10 focus:border-primary-500 rounded-xl text-xs text-white focus:outline-none transition-all resize-none"
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 focus:border-primary-500 rounded-xl text-xs text-slate-800 focus:outline-none transition-all resize-none placeholder-slate-400"
                 />
               </div>
 
               {formError && (
-                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold">
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-semibold">
                   {formError}
                 </div>
               )}
@@ -425,14 +484,14 @@ export default function RequestManagement() {
                 <button
                   type="button"
                   onClick={() => setNewRequestModal(false)}
-                  className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 font-semibold rounded-xl text-xs transition-all border border-transparent hover:border-white/5"
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-all border border-slate-200/50"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   type="submit"
                   disabled={submitLoading}
-                  className="flex-1 py-2.5 bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white font-semibold rounded-xl text-xs shadow-lg shadow-primary-500/10 transition-all flex items-center justify-center"
+                  className="flex-1 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl text-xs shadow-md shadow-primary-500/15 transition-all flex items-center justify-center cursor-pointer"
                 >
                   {submitLoading ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

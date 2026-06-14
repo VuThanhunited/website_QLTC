@@ -16,6 +16,8 @@ const AssetSchema = new mongoose.Schema({
   },
   totalSlots: { type: Number, default: 1 },
   allocatedSlots: { type: Number, default: 0 },
+  managedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  isManagerApproved: { type: Boolean, default: false },
   is_deleted: { type: Boolean, default: false } // Soft delete
 }, { timestamps: true });
 

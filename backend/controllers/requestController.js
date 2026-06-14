@@ -52,11 +52,16 @@ exports.getRequests = async (req, res) => {
     let query = {};
     if (req.user.role === 'Student') {
       query.userId = req.user.id;
+    } else if (req.user.role === 'Lecturer') {
+      const managedAssets = await Asset.find({ managedBy: req.user.id, isManagerApproved: true, is_deleted: false });
+      const assetIds = managedAssets.map(a => a._id);
+      query.assetId = { $in: assetIds };
     }
 
     const requests = await Request.find(query)
       .populate('userId', 'username email role')
-      .populate('assetId', 'astId name category status totalSlots allocatedSlots')
+      .populate('assetId', 'astId name category status totalSlots allocatedSlots managedBy isManagerApproved')
+      .populate('actionBy', 'username role')
       .sort({ createdAt: -1 });
 
     res.json(requests);
@@ -80,6 +85,12 @@ exports.processAction = async (req, res) => {
       
     if (!request) {
       return res.status(404).json({ message: 'Không tìm thấy yêu cầu này.' });
+    }
+
+    // Kiểm tra phân quyền: Chỉ giảng viên quản lý tài sản đã được duyệt mới có quyền duyệt/từ chối
+    const asset = request.assetId;
+    if (!asset || !asset.managedBy || asset.managedBy.toString() !== req.user.id.toString() || !asset.isManagerApproved) {
+      return res.status(403).json({ message: 'Bạn không quản lý tài sản này nên không thể duyệt yêu cầu của sinh viên.' });
     }
 
     if (request.status !== 'pending') {

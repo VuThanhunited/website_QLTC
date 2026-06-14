@@ -68,13 +68,13 @@ export const AuthProvider = ({ children }) => {
     let password = '';
     
     if (targetRole === 'Admin') {
-      email = 'admin@university.edu.vn';
+      email = 'admin@hust.edu.vn';
       password = 'admin123';
     } else if (targetRole === 'Lecturer') {
-      email = 'lecturer@university.edu.vn';
+      email = 'lecturer@hust.edu.vn';
       password = 'lecturer123';
     } else {
-      email = 'student@university.edu.vn';
+      email = 'student@sis.hust.edu.vn';
       password = 'student123';
     }
 

@@ -34,7 +34,7 @@ const PrivateRoute = ({ children, allowedRoles }) => {
 // Bố cục Layout Cán bộ
 const Layout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-gray-100 selection:bg-rose-500/30 selection:text-rose-300">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 selection:bg-primary-500/20 selection:text-primary-600">
       <Sidebar />
       <div className="relative">
         {children}

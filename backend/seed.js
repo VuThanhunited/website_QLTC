@@ -23,21 +23,21 @@ const seedDatabase = async () => {
     // Create Users (password will be hashed by mongoose pre-save hook)
     const admin = new User({
       username: 'admin',
-      email: 'admin@university.edu.vn',
+      email: 'admin@hust.edu.vn',
       password: 'admin123',
       role: 'Admin'
     });
 
     const lecturer = new User({
       username: 'lecturer',
-      email: 'lecturer@university.edu.vn',
+      email: 'lecturer@hust.edu.vn',
       password: 'lecturer123',
       role: 'Lecturer'
     });
 
     const student = new User({
       username: 'student',
-      email: 'student@university.edu.vn',
+      email: 'student@sis.hust.edu.vn',
       password: 'student123',
       role: 'Student'
     });
@@ -148,7 +148,12 @@ const seedDatabase = async () => {
     ];
 
     const savedAssets = [];
-    for (const a of assets) {
+    for (let i = 0; i < assets.length; i++) {
+      const a = assets[i];
+      if (i === 0 || i === 4) {
+        a.managedBy = lecturer._id;
+        a.isManagerApproved = true;
+      }
       const savedAsset = await Asset.create(a);
       savedAssets.push(savedAsset);
     }

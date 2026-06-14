@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
 
   // Giả lập đăng nhập nhanh cho tài khoản Admin
   const switchUserRole = async (targetRole) => {
-    let email = 'admin@university.edu.vn';
+    let email = 'admin@hust.edu.vn';
     let password = 'admin123';
     return await login(email, password);
   };

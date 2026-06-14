@@ -21,6 +21,14 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: 'Vui lòng điền đầy đủ các thông tin.' });
     }
 
+    // Kiểm tra định dạng email theo vai trò
+    if (role === 'Student' && !email.endsWith('@sis.hust.edu.vn')) {
+      return res.status(400).json({ message: 'Email sinh viên phải kết thúc bằng @sis.hust.edu.vn' });
+    }
+    if ((role === 'Lecturer' || role === 'Admin') && !email.endsWith('@hust.edu.vn')) {
+      return res.status(400).json({ message: 'Email giảng viên/quản trị viên phải kết thúc bằng @hust.edu.vn' });
+    }
+
     const exist = await User.findOne({ $or: [{ email }, { username }] });
     if (exist) {
       return res.status(400).json({ message: 'Tên tài khoản hoặc email đã tồn tại.' });
@@ -108,6 +116,17 @@ exports.deleteUser = async (req, res) => {
     });
 
     res.json({ message: 'Xóa tài khoản người dùng thành công.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi máy chủ nội bộ.', error: error.message });
+  }
+};
+
+// @desc    Get all lecturer users
+// @route   GET /api/admin/lecturers
+exports.getLecturers = async (req, res) => {
+  try {
+    const lecturers = await User.find({ role: 'Lecturer' }).select('username email');
+    res.json(lecturers);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi máy chủ nội bộ.', error: error.message });
   }

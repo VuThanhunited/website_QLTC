@@ -9,6 +9,7 @@ router.use(auth, authorize('Admin'));
 router.get('/', adminUserController.getAllUsers);
 router.post('/', adminUserController.createUser);
 router.put('/:id/role', adminUserController.updateUserRole);
+router.get('/lecturers', adminUserController.getLecturers);
 router.delete('/:id', adminUserController.deleteUser);
 
 module.exports = router;

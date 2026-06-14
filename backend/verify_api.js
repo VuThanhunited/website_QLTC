@@ -33,7 +33,7 @@ async function runTests() {
     const studentLogin = await request(`${BASE_URL}/auth/login`, {
       method: 'POST',
       body: {
-        email: 'student@university.edu.vn',
+        email: 'student@sis.hust.edu.vn',
         password: 'student123'
       }
     });
@@ -43,7 +43,7 @@ async function runTests() {
     const lecturerLogin = await request(`${BASE_URL}/auth/login`, {
       method: 'POST',
       body: {
-        email: 'lecturer@university.edu.vn',
+        email: 'lecturer@hust.edu.vn',
         password: 'lecturer123'
       }
     });
@@ -53,7 +53,7 @@ async function runTests() {
     const adminLogin = await request(`${BASE_URL}/auth/login`, {
       method: 'POST',
       body: {
-        email: 'admin@university.edu.vn',
+        email: 'admin@hust.edu.vn',
         password: 'admin123'
       }
     });
@@ -185,7 +185,7 @@ async function runTests() {
       headers: { Authorization: `Bearer ${adminToken}` },
       body: {
         username: tempUsername,
-        email: `${tempUsername}@university.edu.vn`,
+        email: `${tempUsername}@sis.hust.edu.vn`,
         password: 'password123',
         role: 'Student'
       }

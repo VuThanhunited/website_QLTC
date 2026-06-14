@@ -5,6 +5,6 @@ const { auth, authorize } = require('../middleware/auth');
 
 router.post('/', auth, requestController.createRequest);
 router.get('/', auth, requestController.getRequests);
-router.post('/:id/action', auth, authorize(['Lecturer', 'Admin']), requestController.processAction);
+router.post('/:id/action', auth, authorize(['Lecturer']), requestController.processAction);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import logoImg from '../img/logo.jpg';
 import { 
   LayoutDashboard, 
   FolderLock, 
@@ -27,12 +28,10 @@ export default function Sidebar() {
   const handleQuickSwitch = async (role) => {
     const res = await switchUserRole(role);
     if (res.success) {
-      // Refresh current page or redirect to dashboard
       navigate('/');
     }
   };
 
-  // Các mục điều hướng dành riêng cho Sinh viên
   const menuItems = [
     {
       name: 'Bảng điều khiển',
@@ -52,9 +51,9 @@ export default function Sidebar() {
 
   const getRoleBadgeColor = (role) => {
     switch (role) {
-      case 'Admin': return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
-      case 'Lecturer': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-      default: return 'bg-primary-500/20 text-primary-400 border-primary-500/30';
+      case 'Admin': return 'bg-rose-500/10 text-rose-600 border-rose-500/20';
+      case 'Lecturer': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+      default: return 'bg-primary-500/10 text-primary-600 border-primary-500/20';
     }
   };
 
@@ -67,26 +66,26 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 glass border-r border-white/5 flex flex-col h-screen fixed left-0 top-0 z-20">
+    <aside className="w-64 bg-white/95 backdrop-blur-md border-r border-slate-200/80 flex flex-col h-screen fixed left-0 top-0 z-20">
       {/* Logo */}
-      <div className="p-6 border-b border-white/5 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-500/20">
-          U
+      <div className="p-6 border-b border-slate-200/60 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-md border border-slate-200/50 shrink-0">
+          <img src={logoImg} alt="HUST Logo" className="w-full h-full object-cover" />
         </div>
         <div>
-          <h1 className="font-bold text-md leading-tight text-white tracking-wide">UniAsset</h1>
-          <p className="text-xs text-gray-400">Digital Asset Manager</p>
+          <h1 className="font-bold text-md leading-tight text-slate-800 tracking-wide">UniAsset</h1>
+          <p className="text-[10px] font-semibold text-primary-600 uppercase tracking-wide">HUST DAM</p>
         </div>
       </div>
 
       {/* Profile */}
-      <div className="p-5 border-b border-white/5 bg-white/[0.01]">
+      <div className="p-5 border-b border-slate-200/60 bg-slate-50/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-bold text-lg text-primary-400 uppercase">
+          <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-lg text-primary-600 uppercase">
             {user?.username?.[0] || 'U'}
           </div>
           <div className="overflow-hidden">
-            <h4 className="font-medium text-sm text-gray-200 truncate">{user?.username}</h4>
+            <h4 className="font-medium text-sm text-slate-800 truncate">{user?.username}</h4>
             <span className={`inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold rounded border ${getRoleBadgeColor(user?.role)}`}>
               {getRoleNameVi(user?.role)}
             </span>
@@ -105,22 +104,22 @@ export default function Sidebar() {
               to={item.path}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                 isActive 
-                  ? 'bg-gradient-to-r from-primary-600 to-indigo-600 text-white shadow-lg shadow-primary-600/15 font-semibold' 
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/20 font-semibold' 
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <Icon size={18} className={isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'} />
+              <Icon size={18} className={isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'} />
               <span>{item.name}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-white/5 bg-black/20">
+      <div className="p-4 border-t border-slate-200/80 bg-slate-50/80">
         {/* Log out */}
         <button
           onClick={handleLogout}
-          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-xs font-semibold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-all"
+          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-xs font-semibold text-rose-600 bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/10 hover:border-rose-500/20 transition-all"
         >
           <LogOut size={14} />
           Đăng xuất hệ thống

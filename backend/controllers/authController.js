@@ -51,6 +51,14 @@ exports.login = async (req, res) => {
 exports.register = async (req, res) => {
   const { username, email, password, role } = req.body;
   try {
+    // Kiểm tra định dạng email theo vai trò
+    if (role === 'Student' && !email.endsWith('@sis.hust.edu.vn')) {
+      return res.status(400).json({ message: 'Email sinh viên phải kết thúc bằng @sis.hust.edu.vn' });
+    }
+    if ((role === 'Lecturer' || role === 'Admin') && !email.endsWith('@hust.edu.vn')) {
+      return res.status(400).json({ message: 'Email giảng viên/quản trị viên phải kết thúc bằng @hust.edu.vn' });
+    }
+
     const userExists = await User.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
       return res.status(400).json({ message: 'Tên tài khoản hoặc email đã tồn tại.' });
