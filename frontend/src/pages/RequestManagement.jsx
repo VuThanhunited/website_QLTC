@@ -355,9 +355,23 @@ export default function RequestManagement() {
                                   </button>
                                 </div>
                               ) : (
-                                <span className="text-[10px] text-slate-500">
-                                  Xử lý bởi: <span className="font-semibold text-slate-700">{req.actionBy?.username || 'Hệ thống'}</span>
-                                </span>
+                                <div className="flex flex-col items-center justify-center gap-1.5">
+                                  <span className="text-[10px] text-slate-500">
+                                    Xử lý bởi: <span className="font-semibold text-slate-700">{req.actionBy?.username || 'Hệ thống'}</span>
+                                  </span>
+                                  <button
+                                    onClick={() => handleAction(req._id, 'pending')}
+                                    disabled={isProcessing}
+                                    title="Hoàn tác yêu cầu về trạng thái chờ duyệt"
+                                    className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200/55 transition-all text-[9px] font-semibold flex items-center justify-center cursor-pointer"
+                                  >
+                                    {isProcessing ? (
+                                      <div className="w-3 h-3 border-2 border-slate-400/30 border-t-slate-500 rounded-full animate-spin"></div>
+                                    ) : (
+                                      'Hoàn tác chờ duyệt'
+                                    )}
+                                  </button>
+                                </div>
                               )
                             ) : (
                               /* Tác vụ dành riêng cho Sinh viên khi đơn đã duyệt */

@@ -70,12 +70,12 @@ exports.getRequests = async (req, res) => {
   }
 };
 
-// @desc    Process approval/rejection of a request
+// @desc    Process approval/rejection/reversion of a request
 // @route   POST /api/requests/:id/action
 exports.processAction = async (req, res) => {
   const { action } = req.body;
   try {
-    if (!['approved', 'rejected'].includes(action)) {
+    if (!['approved', 'rejected', 'pending'].includes(action)) {
       return res.status(400).json({ message: 'Hành động duyệt không hợp lệ.' });
     }
 
@@ -87,24 +87,40 @@ exports.processAction = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy yêu cầu này.' });
     }
 
-    // Kiểm tra phân quyền: Chỉ giảng viên quản lý tài sản đã được duyệt mới có quyền duyệt/từ chối
+    // Kiểm tra phân quyền: Chỉ giảng viên quản lý tài sản đã được duyệt mới có quyền duyệt/từ chối/hoàn tác
     const asset = request.assetId;
     if (!asset || !asset.managedBy || asset.managedBy.toString() !== req.user.id.toString() || !asset.isManagerApproved) {
       return res.status(403).json({ message: 'Bạn không quản lý tài sản này nên không thể duyệt yêu cầu của sinh viên.' });
     }
 
-    if (request.status !== 'pending') {
-      return res.status(400).json({ message: 'Yêu cầu này đã được xử lý trước đó.' });
+    const oldStatus = request.status;
+    if (oldStatus === action) {
+      return res.status(400).json({ message: 'Trạng thái mới trùng với trạng thái hiện tại.' });
     }
 
-    request.status = action;
-    request.actionBy = req.user.id;
-    request.actionDate = new Date();
-    await request.save();
-
-    if (action === 'approved') {
-      const asset = request.assetId;
+    // 1. Nếu trạng thái cũ đã được duyệt (approved), cần hoàn trả số lượng slot phân bổ (allocatedSlots)
+    if (oldStatus === 'approved') {
       if (request.type === 'borrow') {
+        asset.allocatedSlots = Math.max(0, asset.allocatedSlots - 1);
+        if (asset.allocatedSlots < asset.totalSlots && asset.status === 'allocated') {
+          asset.status = 'available';
+        }
+      } else if (request.type === 'return') {
+        asset.allocatedSlots += 1;
+        if (asset.allocatedSlots >= asset.totalSlots) {
+          asset.status = 'allocated';
+        }
+      }
+      await asset.save();
+    }
+
+    // 2. Nếu trạng thái mới là đã duyệt (approved), cần tăng/giảm số lượng slot tương ứng
+    if (action === 'approved') {
+      if (request.type === 'borrow') {
+        // Kiểm tra xem còn slot trống hay không trước khi phê duyệt
+        if ((asset.totalSlots - asset.allocatedSlots) <= 0) {
+          return res.status(400).json({ message: 'Số lượng bản quyền/slot hiện đã hết, không thể phê duyệt.' });
+        }
         asset.allocatedSlots += 1;
         if (asset.allocatedSlots >= asset.totalSlots) {
           asset.status = 'allocated';
@@ -118,12 +134,29 @@ exports.processAction = async (req, res) => {
       await asset.save();
     }
 
+    // 3. Cập nhật các trường thông tin của yêu cầu
+    request.status = action;
+    if (action === 'pending') {
+      request.actionBy = null;
+      request.actionDate = null;
+    } else {
+      request.actionBy = req.user.id;
+      request.actionDate = new Date();
+    }
+    await request.save();
+
+    // 4. Ghi nhận log
+    let auditAction = '';
+    if (action === 'approved') auditAction = 'APPROVE_REQUEST';
+    else if (action === 'rejected') auditAction = 'REJECT_REQUEST';
+    else auditAction = 'REVERT_REQUEST';
+
     await AuditLog.create({
       userId: req.user.id,
       username: req.user.username,
       role: req.user.role,
-      action: action === 'approved' ? 'APPROVE_REQUEST' : 'REJECT_REQUEST',
-      details: `Đã ${action === 'approved' ? 'duyệt' : 'từ chối'} yêu cầu ${request.type} tài sản ${request.assetId.name} của ${request.userId.username}`
+      action: auditAction,
+      details: `Đã ${action === 'approved' ? 'duyệt' : action === 'rejected' ? 'từ chối' : 'hoàn tác về chờ duyệt'} yêu cầu ${request.type} tài sản ${request.assetId.name} của ${request.userId.username}`
     });
 
     res.json(request);
