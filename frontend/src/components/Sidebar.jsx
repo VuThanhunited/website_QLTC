@@ -12,7 +12,8 @@ import {
   BookOpen, 
   FileText,
   UserCheck,
-  Settings
+  Settings,
+  Clock
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -43,6 +44,12 @@ export default function Sidebar() {
       name: 'Đơn yêu cầu của tôi',
       path: '/requests',
       icon: GitPullRequest,
+      roles: ['Student', 'Lecturer', 'Admin']
+    },
+    {
+      name: 'Lịch sử hoạt động',
+      path: '/history',
+      icon: Clock,
       roles: ['Student', 'Lecturer', 'Admin']
     }
   ];

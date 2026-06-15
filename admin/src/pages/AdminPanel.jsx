@@ -6,7 +6,8 @@ import {
   UserPlus, 
   Trash2, 
   Search,
-  UserCheck
+  UserCheck,
+  Edit
 } from 'lucide-react';
 
 export default function AdminPanel() {
@@ -26,6 +27,12 @@ export default function AdminPanel() {
   const [newUser, setNewUser] = useState({ username: '', email: '', password: '', role: 'Student' });
   const [formError, setFormError] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
+
+  // Edit User Modal States
+  const [editModal, setEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState({ id: '', username: '', email: '', password: '', role: 'Student' });
+  const [editFormError, setEditFormError] = useState('');
+  const [editSubmitLoading, setEditSubmitLoading] = useState(false);
 
   // Filtered users
   const filteredUsers = users.filter(u => {
@@ -109,6 +116,47 @@ export default function AdminPanel() {
       } catch (err) {
         alert(err.response?.data?.message || 'Không thể xóa người dùng.');
       }
+    }
+  };
+
+  // Handle Edit User Click
+  const handleEditUserClick = (u) => {
+    setEditingUser({
+      id: u._id,
+      username: u.username || '',
+      email: u.email || '',
+      password: '', // default empty
+      role: u.role || 'Student'
+    });
+    setEditFormError('');
+    setEditModal(true);
+  };
+
+  // Handle Edit User Submit
+  const handleEditUserSubmit = async (e) => {
+    e.preventDefault();
+    setEditFormError('');
+
+    if (!editingUser.username || !editingUser.email) {
+      setEditFormError('Vui lòng nhập đầy đủ tên tài khoản và email.');
+      return;
+    }
+
+    setEditSubmitLoading(true);
+    try {
+      await api.put(`/admin/users/${editingUser.id}`, {
+        username: editingUser.username,
+        email: editingUser.email,
+        password: editingUser.password || undefined,
+        role: editingUser.role
+      });
+      setEditModal(false);
+      fetchUsers();
+      alert('Cập nhật tài khoản thành công!');
+    } catch (error) {
+      setEditFormError(error.response?.data?.message || 'Không thể cập nhật tài khoản.');
+    } finally {
+      setEditSubmitLoading(false);
     }
   };
 
@@ -265,7 +313,14 @@ export default function AdminPanel() {
                                 </select>
                               </div>
                             </td>
-                            <td className="p-4 text-center">
+                            <td className="p-4 flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleEditUserClick(u)}
+                                title="Chỉnh sửa tài khoản"
+                                className="p-2 rounded-lg bg-primary-50 hover:bg-primary-500 hover:text-white text-primary-600 border border-primary-200 transition-all cursor-pointer"
+                              >
+                                <Edit size={14} />
+                              </button>
                               <button
                                 onClick={() => handleDeleteUser(u._id, u.username)}
                                 disabled={u._id === user?.id}
@@ -273,7 +328,7 @@ export default function AdminPanel() {
                                 className={`p-2 rounded-lg transition-all ${
                                   u._id === user?.id
                                     ? 'bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200/50'
-                                    : 'bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 border border-rose-200'
+                                    : 'bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 border border-rose-200 cursor-pointer'
                                 }`}
                               >
                                 <Trash2 size={14} />
@@ -450,6 +505,109 @@ export default function AdminPanel() {
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   ) : (
                     'Tạo tài khoản'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {editModal && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="glass-card max-w-md w-full rounded-2xl border border-slate-200/80 p-6 shadow-2xl relative bg-white animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <Edit size={18} className="text-primary-600" />
+              Chỉnh Sửa Tài Khoản
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">Cập nhật thông tin tài khoản người dùng trong hệ thống</p>
+
+            <form onSubmit={handleEditUserSubmit} className="mt-5 space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  Tên tài khoản (Username) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: nguyenvanb"
+                  value={editingUser.username}
+                  onChange={(e) => setEditingUser({ ...editingUser, username: e.target.value })}
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 focus:border-primary-500 rounded-xl text-sm text-slate-800 focus:outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  Địa chỉ Email học viện *
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="username@sis.hust.edu.vn hoặc @hust.edu.vn"
+                  value={editingUser.email}
+                  onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 focus:border-primary-500 rounded-xl text-sm text-slate-800 focus:outline-none transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Mật khẩu mới (Tùy chọn)
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Để trống nếu không đổi"
+                    value={editingUser.password}
+                    onChange={(e) => setEditingUser({ ...editingUser, password: e.target.value })}
+                    className="w-full px-3.5 py-2 bg-white border border-slate-200 focus:border-primary-500 rounded-xl text-sm text-slate-850 focus:outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Vai trò (RBAC Role) *
+                  </label>
+                  <select
+                    value={editingUser.role}
+                    disabled={editingUser.id === user?.id}
+                    onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+                    className={`w-full px-3.5 py-2 bg-white border border-slate-200 text-slate-700 text-sm focus:border-primary-500 rounded-xl focus:outline-none transition-all ${
+                      editingUser.id === user?.id ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'
+                    }`}
+                  >
+                    <option value="Student">Student (Sinh viên)</option>
+                    <option value="Lecturer">Lecturer (Giảng viên / Manager)</option>
+                    <option value="Admin">Admin (Quản trị viên)</option>
+                  </select>
+                </div>
+              </div>
+
+              {editFormError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-semibold">
+                  {editFormError}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditModal(false)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-all border border-slate-200/50"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  disabled={editSubmitLoading}
+                  className="flex-1 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl text-xs shadow-md shadow-primary-500/10 transition-all flex items-center justify-center cursor-pointer"
+                >
+                  {editSubmitLoading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    'Cập nhật'
                   )}
                 </button>
               </div>

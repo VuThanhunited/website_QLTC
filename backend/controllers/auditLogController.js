@@ -7,6 +7,7 @@ exports.getLogs = async (req, res) => {
     let query = {};
     if (req.user.role !== 'Admin') {
       query.userId = req.user.id;
+      query.action = { $nin: ['LOGIN', 'SEARCH'] };
     }
     const logs = await AuditLog.find(query).sort({ timestamp: -1 }).limit(100);
     res.json(logs);

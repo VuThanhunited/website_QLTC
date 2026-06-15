@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import RequestManagement from './pages/RequestManagement';
+import PersonalHistory from './pages/PersonalHistory';
 
 // PrivateRoute check authentication
 const PrivateRoute = ({ children, allowedRoles }) => {
@@ -67,6 +68,17 @@ export default function App() {
               <PrivateRoute>
                 <Layout>
                   <RequestManagement />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/history"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <PersonalHistory />
                 </Layout>
               </PrivateRoute>
             }

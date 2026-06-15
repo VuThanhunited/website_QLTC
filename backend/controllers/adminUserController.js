@@ -131,3 +131,81 @@ exports.getLecturers = async (req, res) => {
     res.status(500).json({ message: 'Lỗi máy chủ nội bộ.', error: error.message });
   }
 };
+
+// @desc    Update a user
+// @route   PUT /api/admin/users/:id
+exports.updateUser = async (req, res) => {
+  const { username, email, password, role } = req.body;
+  try {
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng.' });
+    }
+
+    // Do not allow self-demotion
+    if (targetUser._id.toString() === req.user.id.toString() && role && role !== 'Admin') {
+      return res.status(400).json({ message: 'Bạn không thể tự hạ quyền Admin của chính mình.' });
+    }
+
+    // Check duplicate username if changing username
+    if (username && username !== targetUser.username) {
+      const usernameExist = await User.findOne({ username });
+      if (usernameExist) {
+        return res.status(400).json({ message: 'Tên tài khoản đã tồn tại.' });
+      }
+      targetUser.username = username;
+    }
+
+    // Check email constraints if changing email or role
+    if (email && email !== targetUser.email) {
+      const checkRole = role || targetUser.role;
+      if (checkRole === 'Student' && !email.endsWith('@sis.hust.edu.vn')) {
+        return res.status(400).json({ message: 'Email sinh viên phải kết thúc bằng @sis.hust.edu.vn' });
+      }
+      if ((checkRole === 'Lecturer' || checkRole === 'Admin') && !email.endsWith('@hust.edu.vn')) {
+        return res.status(400).json({ message: 'Email giảng viên/quản trị viên phải kết thúc bằng @hust.edu.vn' });
+      }
+
+      const emailExist = await User.findOne({ email });
+      if (emailExist) {
+        return res.status(400).json({ message: 'Email đã tồn tại.' });
+      }
+      targetUser.email = email;
+    } else if (role && role !== targetUser.role) {
+      // If role changes but email is same, still validate constraints
+      const checkEmail = email || targetUser.email;
+      if (role === 'Student' && !checkEmail.endsWith('@sis.hust.edu.vn')) {
+        return res.status(400).json({ message: 'Email sinh viên phải kết thúc bằng @sis.hust.edu.vn khi đổi vai trò.' });
+      }
+      if ((role === 'Lecturer' || role === 'Admin') && !checkEmail.endsWith('@hust.edu.vn')) {
+        return res.status(400).json({ message: 'Email giảng viên/quản trị viên phải kết thúc bằng @hust.edu.vn khi đổi vai trò.' });
+      }
+    }
+
+    if (role) {
+      targetUser.role = role;
+    }
+
+    if (password) {
+      targetUser.password = password; // triggers pre('save') hashing
+    }
+
+    await targetUser.save();
+
+    await AuditLog.create({
+      userId: req.user.id,
+      username: req.user.username,
+      role: req.user.role,
+      action: 'ADMIN_UPDATE_USER',
+      details: `Admin cập nhật tài khoản người dùng: ${targetUser.username} (${targetUser.role})`
+    });
+
+    res.json({
+      message: 'Cập nhật tài khoản người dùng thành công.',
+      user: { id: targetUser._id, username: targetUser.username, email: targetUser.email, role: targetUser.role }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi máy chủ nội bộ.', error: error.message });
+  }
+};
+
