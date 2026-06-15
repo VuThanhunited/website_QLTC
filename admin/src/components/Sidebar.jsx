@@ -49,6 +49,12 @@ export default function Sidebar() {
       path: '/admin',
       icon: Settings,
       roles: ['Admin']
+    },
+    {
+      name: 'Thông tin cá nhân',
+      path: '/profile',
+      icon: UserCheck,
+      roles: ['Admin']
     }
   ];
 

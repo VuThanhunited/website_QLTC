@@ -47,6 +47,12 @@ export default function Sidebar() {
       roles: ['Student', 'Lecturer', 'Admin']
     },
     {
+      name: 'Thông tin cá nhân',
+      path: '/profile',
+      icon: UserCheck,
+      roles: ['Student', 'Lecturer', 'Admin']
+    },
+    {
       name: 'Lịch sử hoạt động',
       path: '/history',
       icon: Clock,

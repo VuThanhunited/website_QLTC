@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import RequestManagement from './pages/RequestManagement';
 import PersonalHistory from './pages/PersonalHistory';
+import Profile from './pages/Profile';
 
 // PrivateRoute check authentication
 const PrivateRoute = ({ children, allowedRoles }) => {
@@ -68,6 +69,17 @@ export default function App() {
               <PrivateRoute>
                 <Layout>
                   <RequestManagement />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Profile />
                 </Layout>
               </PrivateRoute>
             }

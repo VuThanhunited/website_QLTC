@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import AssetManagement from './pages/AssetManagement';
 import RequestManagement from './pages/RequestManagement';
 import AdminPanel from './pages/AdminPanel';
+import Profile from './pages/Profile';
 
 // PrivateRoute kiểm tra xác thực cho Cán bộ quản lý
 const PrivateRoute = ({ children, allowedRoles }) => {
@@ -91,6 +92,17 @@ export default function App() {
               <PrivateRoute allowedRoles={['Admin']}>
                 <Layout>
                   <AdminPanel />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute allowedRoles={['Admin']}>
+                <Layout>
+                  <Profile />
                 </Layout>
               </PrivateRoute>
             }
