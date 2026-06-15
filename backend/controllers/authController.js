@@ -13,6 +13,10 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Tài khoản không tồn tại trên hệ thống.' });
     }
 
+    if (user.status === 'Blocked') {
+      return res.status(403).json({ message: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.' });
+    }
+
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Mật khẩu đăng nhập không chính xác.' });

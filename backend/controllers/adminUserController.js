@@ -135,7 +135,7 @@ exports.getLecturers = async (req, res) => {
 // @desc    Update a user
 // @route   PUT /api/admin/users/:id
 exports.updateUser = async (req, res) => {
-  const { username, email, password, role } = req.body;
+  const { username, email, password, role, status } = req.body;
   try {
     const targetUser = await User.findById(req.params.id);
     if (!targetUser) {
@@ -145,6 +145,11 @@ exports.updateUser = async (req, res) => {
     // Do not allow self-demotion
     if (targetUser._id.toString() === req.user.id.toString() && role && role !== 'Admin') {
       return res.status(400).json({ message: 'Bạn không thể tự hạ quyền Admin của chính mình.' });
+    }
+
+    // Do not allow self-blocking
+    if (targetUser._id.toString() === req.user.id.toString() && status === 'Blocked') {
+      return res.status(400).json({ message: 'Bạn không thể tự khóa tài khoản của chính mình.' });
     }
 
     // Check duplicate username if changing username
@@ -186,6 +191,13 @@ exports.updateUser = async (req, res) => {
       targetUser.role = role;
     }
 
+    if (status) {
+      if (!['Active', 'Blocked'].includes(status)) {
+        return res.status(400).json({ message: 'Trạng thái tài khoản không hợp lệ.' });
+      }
+      targetUser.status = status;
+    }
+
     if (password) {
       targetUser.password = password; // triggers pre('save') hashing
     }
@@ -197,12 +209,12 @@ exports.updateUser = async (req, res) => {
       username: req.user.username,
       role: req.user.role,
       action: 'ADMIN_UPDATE_USER',
-      details: `Admin cập nhật tài khoản người dùng: ${targetUser.username} (${targetUser.role})`
+      details: `Admin cập nhật tài khoản người dùng: ${targetUser.username} (${targetUser.role}) - Trạng thái: ${targetUser.status}`
     });
 
     res.json({
       message: 'Cập nhật tài khoản người dùng thành công.',
-      user: { id: targetUser._id, username: targetUser.username, email: targetUser.email, role: targetUser.role }
+      user: { id: targetUser._id, username: targetUser.username, email: targetUser.email, role: targetUser.role, status: targetUser.status }
     });
   } catch (error) {
     res.status(500).json({ message: 'Lỗi máy chủ nội bộ.', error: error.message });

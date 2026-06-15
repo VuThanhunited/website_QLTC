@@ -30,7 +30,7 @@ export default function AdminPanel() {
 
   // Edit User Modal States
   const [editModal, setEditModal] = useState(false);
-  const [editingUser, setEditingUser] = useState({ id: '', username: '', email: '', password: '', role: 'Student' });
+  const [editingUser, setEditingUser] = useState({ id: '', username: '', email: '', password: '', role: 'Student', status: 'Active' });
   const [editFormError, setEditFormError] = useState('');
   const [editSubmitLoading, setEditSubmitLoading] = useState(false);
 
@@ -126,7 +126,8 @@ export default function AdminPanel() {
       username: u.username || '',
       email: u.email || '',
       password: '', // default empty
-      role: u.role || 'Student'
+      role: u.role || 'Student',
+      status: u.status || 'Active'
     });
     setEditFormError('');
     setEditModal(true);
@@ -148,7 +149,8 @@ export default function AdminPanel() {
         username: editingUser.username,
         email: editingUser.email,
         password: editingUser.password || undefined,
-        role: editingUser.role
+        role: editingUser.role,
+        status: editingUser.status
       });
       setEditModal(false);
       fetchUsers();
@@ -280,6 +282,7 @@ export default function AdminPanel() {
                         <th className="p-4 font-semibold">Địa chỉ Email</th>
                         <th className="p-4 font-semibold">Ngày đăng ký</th>
                         <th className="p-4 font-semibold">Vai trò phân quyền (RBAC)</th>
+                        <th className="p-4 font-semibold">Trạng thái</th>
                         <th className="p-4 font-semibold text-center">Tác vụ</th>
                       </tr>
                     </thead>
@@ -312,6 +315,15 @@ export default function AdminPanel() {
                                   <option value="Admin" className="bg-white text-rose-600">Admin (Quản trị viên)</option>
                                 </select>
                               </div>
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2 py-1.5 rounded-xl text-[10px] font-bold border transition-all ${
+                                u.status === 'Blocked' 
+                                  ? 'bg-rose-50 text-rose-600 border-rose-200' 
+                                  : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                              }`}>
+                                {u.status === 'Blocked' ? 'Đã khóa' : 'Hoạt động'}
+                              </span>
                             </td>
                             <td className="p-4 flex items-center justify-center gap-2">
                               <button
@@ -583,6 +595,23 @@ export default function AdminPanel() {
                     <option value="Admin">Admin (Quản trị viên)</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  Trạng thái tài khoản *
+                </label>
+                <select
+                  value={editingUser.status}
+                  disabled={editingUser.id === user?.id}
+                  onChange={(e) => setEditingUser({ ...editingUser, status: e.target.value })}
+                  className={`w-full px-3.5 py-2 bg-white border border-slate-200 text-slate-700 text-sm focus:border-primary-500 rounded-xl focus:outline-none transition-all ${
+                    editingUser.id === user?.id ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'
+                  }`}
+                >
+                  <option value="Active">Hoạt động (Active)</option>
+                  <option value="Blocked">Tạm khóa (Blocked)</option>
+                </select>
               </div>
 
               {editFormError && (
