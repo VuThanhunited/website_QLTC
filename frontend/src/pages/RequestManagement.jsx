@@ -38,6 +38,8 @@ export default function RequestManagement() {
   const [notes, setNotes] = useState('');
   const [formError, setFormError] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [editRequestModal, setEditRequestModal] = useState(false);
+  const [editingRequestId, setEditingRequestId] = useState(null);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -117,6 +119,45 @@ export default function RequestManagement() {
       fetchRequests();
     } catch (err) {
       setFormError(err.response?.data?.message || 'Có lỗi xảy ra khi tạo yêu cầu.');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  // Student: Open edit modal
+  const handleOpenEditModal = (req) => {
+    setEditingRequestId(req._id);
+    setSelectedAssetId(req.assetId?._id || req.assetId);
+    setReqType(req.type);
+    setDuration(req.durationDays || 30);
+    setNotes(req.notes || '');
+    setFormError('');
+    setEditRequestModal(true);
+  };
+
+  // Student: Submit request edits
+  const handleEditRequest = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    if (!selectedAssetId) {
+      setFormError('Vui lòng chọn tài sản.');
+      return;
+    }
+
+    setSubmitLoading(true);
+    try {
+      await api.put(`/requests/${editingRequestId}`, {
+        assetId: selectedAssetId,
+        type: reqType,
+        durationDays: duration,
+        notes
+      });
+      setEditRequestModal(false);
+      setEditingRequestId(null);
+      setNotes('');
+      fetchRequests();
+    } catch (err) {
+      setFormError(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật yêu cầu.');
     } finally {
       setSubmitLoading(false);
     }
@@ -374,8 +415,15 @@ export default function RequestManagement() {
                                 </div>
                               )
                             ) : (
-                              /* Tác vụ dành riêng cho Sinh viên khi đơn đã duyệt */
-                              req.status === 'approved' && req.type === 'borrow' ? (
+                              /* Tác vụ dành riêng cho Sinh viên */
+                              req.status === 'pending' ? (
+                                <button
+                                  onClick={() => handleOpenEditModal(req)}
+                                  className="px-2 py-1 rounded bg-sky-50 hover:bg-sky-500 text-sky-600 hover:text-white border border-sky-200 hover:border-sky-600 transition-all text-[10px] font-semibold flex items-center justify-center gap-1 cursor-pointer"
+                                >
+                                  Chỉnh sửa
+                                </button>
+                              ) : req.status === 'approved' && req.type === 'borrow' ? (
                                 <div className="inline-flex gap-2">
                                   {/* Yêu cầu gia hạn (UC-04) */}
                                   <button
@@ -511,6 +559,113 @@ export default function RequestManagement() {
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   ) : (
                     'Gửi yêu cầu'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Student Edit Request Modal */}
+      {editRequestModal && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="glass-card max-w-md w-full rounded-2xl border border-slate-200/80 p-6 shadow-2xl relative bg-white">
+            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <Plus size={18} className="text-sky-600" />
+              Chỉnh Sửa Đơn Yêu Cầu
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">Cập nhật thông tin phiếu mượn, trả hoặc gia hạn tài nguyên số</p>
+
+            <form onSubmit={handleEditRequest} className="mt-5 space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  Chọn tài sản số *
+                </label>
+                <select
+                  value={selectedAssetId}
+                  onChange={(e) => setSelectedAssetId(e.target.value)}
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 text-slate-700 text-sm focus:border-primary-500 rounded-xl focus:outline-none transition-all cursor-pointer"
+                >
+                  {assets.map((asset) => (
+                    <option key={asset._id} value={asset._id}>
+                      [{asset.astId}] {asset.name} ({asset.category})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Loại yêu cầu *
+                  </label>
+                  <select
+                    value={reqType}
+                    onChange={(e) => setReqType(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white border border-slate-200 text-slate-700 text-sm focus:border-primary-500 rounded-xl focus:outline-none transition-all cursor-pointer"
+                  >
+                    <option value="borrow">Mượn tài nguyên</option>
+                    <option value="return">Trả tài nguyên</option>
+                    <option value="extend">Gia hạn thời hạn</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Thời gian đề xuất (ngày)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    disabled={reqType === 'return'}
+                    value={duration}
+                    onChange={(e) => setDuration(parseInt(e.target.value) || 30)}
+                    className="w-full px-3.5 py-2 bg-white border border-slate-200 focus:border-primary-500 rounded-xl text-sm text-slate-850 focus:outline-none disabled:opacity-50 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  Lý do / Ghi chú chi tiết *
+                </label>
+                <textarea
+                  required
+                  rows="3"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Điền lý do thực tế..."
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 focus:border-primary-500 rounded-xl text-xs text-slate-800 focus:outline-none transition-all resize-none placeholder-slate-400"
+                />
+              </div>
+
+              {formError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-semibold">
+                  {formError}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditRequestModal(false);
+                    setEditingRequestId(null);
+                  }}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-all border border-slate-200/50"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitLoading}
+                  className="flex-1 py-2.5 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-semibold rounded-xl text-xs shadow-md shadow-sky-500/15 transition-all flex items-center justify-center cursor-pointer"
+                >
+                  {submitLoading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    'Cập nhật'
                   )}
                 </button>
               </div>

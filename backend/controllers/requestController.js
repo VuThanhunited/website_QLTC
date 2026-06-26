@@ -164,3 +164,67 @@ exports.processAction = async (req, res) => {
     res.status(500).json({ message: 'Lỗi máy chủ nội bộ.', error: error.message });
   }
 };
+
+// @desc    Update a request (Student only - pending status only)
+// @route   PUT /api/requests/:id
+exports.updateRequest = async (req, res) => {
+  const { assetId, type, durationDays, notes } = req.body;
+  try {
+    const request = await Request.findById(req.params.id)
+      .populate('assetId')
+      .populate('userId');
+
+    if (!request) {
+      return res.status(404).json({ message: 'Không tìm thấy yêu cầu này.' });
+    }
+
+    // Xác minh quyền sở hữu: Chỉ sinh viên tạo đơn mới có quyền sửa đổi
+    const ownerId = request.userId._id ? request.userId._id.toString() : request.userId.toString();
+    if (ownerId !== req.user.id.toString()) {
+      return res.status(403).json({ message: 'Bạn không có quyền chỉnh sửa yêu cầu này.' });
+    }
+
+    // Đơn phải ở trạng thái pending mới được sửa
+    if (request.status !== 'pending') {
+      return res.status(400).json({ message: 'Chỉ có thể chỉnh sửa đơn yêu cầu đang ở trạng thái Chờ duyệt.' });
+    }
+
+    // Xác thực tài sản mới hoặc loại mới nếu được thay đổi
+    const assetIdToUse = assetId || (request.assetId?._id || request.assetId);
+    const typeToUse = type || request.type;
+
+    const asset = await Asset.findOne({ _id: assetIdToUse, is_deleted: false });
+    if (!asset) {
+      return res.status(404).json({ message: 'Tài sản số không tồn tại hoặc đã bị xóa.' });
+    }
+
+    if (typeToUse === 'borrow' && asset.status === 'maintaining') {
+      return res.status(400).json({ message: 'Tài sản đang được bảo trì, không thể mượn.' });
+    }
+
+    if (typeToUse === 'borrow' && asset.status === 'allocated' && (asset.totalSlots - asset.allocatedSlots) <= 0) {
+      return res.status(400).json({ message: 'Số lượng bản quyền/slot hiện đã hết.' });
+    }
+
+    // Cập nhật thông tin
+    request.assetId = assetIdToUse;
+    request.type = typeToUse;
+    request.durationDays = durationDays !== undefined ? durationDays : request.durationDays;
+    request.notes = notes !== undefined ? notes : request.notes;
+
+    await request.save();
+
+    // Ghi nhận Audit Log
+    await AuditLog.create({
+      userId: req.user.id,
+      username: req.user.username,
+      role: req.user.role,
+      action: 'UPDATE_REQUEST',
+      details: `Chỉnh sửa yêu cầu ${typeToUse} tài sản ${asset.name}`
+    });
+
+    res.json({ message: 'Cập nhật yêu cầu thành công.', request });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi máy chủ nội bộ.', error: error.message });
+  }
+};
